@@ -1,3 +1,33 @@
+#   2000/03/21 14:41:54 
+
+#   Copyright 1993, 1994, 1995, 1996  Bank of Canada.
+#   Copyright 1997 (June), Paul Gilbert.
+#   Copyright 1997 (Aug.), Bank of Canada.
+#   Copyright 1998, 1999, 2000   Bank of Canada.
+
+#   The user of this software has the right to use, reproduce and distribute it.
+#   Bank of Canada and Paul Gilbert make no warranties with respect to the 
+#   software or its fitness for any particular purpose. 
+#   The software is distributed by the Bank of Canada and by Paul Gilbert 
+#   solely on an "as is" basis. By using the software, user agrees to accept 
+#   the entire risk of using this software.
+
+################################################################################
+
+
+#   2000/04/18 11:17:17  ##############################################################################
+
+
+
+
+
+
+
+
+
+
+
+##############################################################################
 
 system.info <- function()
      {if( !exists("version")) 
@@ -170,7 +200,7 @@ if(is.R())
 #  no longer needed  unlink <- function(file) system.call(paste("rm -fr ", file))
     global.assign <- function(name, value) 
                           {assign(name,value, envir=.GlobalEnv)}
-    synchronize <- function(x){NULL} # perhaps this should do something?
+    synchronize<- function(x){NULL} # perhaps this should do something?
     .SPAWN <- FALSE
     dev.ask <- function(ask=T){par(ask=ask)}
     if (is.R.pre0.63.2())
@@ -211,9 +241,9 @@ if(is.R())
 
 if(is.unix())
   {sleep <- function(n) {system.call(paste("sleep ", n))} # pause for n seconds
-   present.working.directory <- function(){system.call("pwd")} #present directory
+   present.working.directory <-function(){system.call("pwd")} #present directory
    whoami <- function(){system.call("whoami")} # return user id (for mail)
-   local.host.netname <- function() {system.call("uname -n")}
+   local.host.netname <-function() {system.call("uname -n")}
 
    mail <- function(to, subject="", text="")
      {# If to is null then mail is not sent (useful for testing).
@@ -269,7 +299,7 @@ if(is.unix())
       system.call <- function(cmd) system(cmd, intern=T)
 
   # the following date function might be made system independent as a C call.
-      date.parsed <- function() 
+      date.parsed <-function() 
         {d<-parse(text=strsplit(
               system.call("date \'+%Y %m %d %H %M %S\'")," ")[[1]])
          list(y=  eval(d[1]),
@@ -285,7 +315,7 @@ if(is.unix())
      {system.call <- function(cmd)  unix(cmd)            
       file.exists <- function(file) {1 == unix(paste("if [ -f ", file, 
            " ] ; then (echo 1) ; else (echo 0); fi"))}
-      date.parsed <- function() 
+      date.parsed <-function() 
         {d <- parse(text=system.call("date '+%Y %m %d %H %M %S'"),white=T)
          list(y=  eval(d[1]),
               m=eval(d[2]),
@@ -318,34 +348,31 @@ if (is.S())
        #     .RandomSeed is used. The existence of .RandomSeed is
        #     used to indicate whether an alternate RNG is used and the
        #     first element of .RandomSeed indicates the generator.
-       #  Note this does not always work with For loops if where=0 is used.
-       old <- if(exists(".RandomSeed"))  
-       		c("Wichmann-Hill")[1+.RandomSeed[1]] else "default"
-       if ( !is.null(kind))
+       if ( is.null(kind))
+         {if(exists(".RandomSeed")) kind <- c("Wichmann-Hill")[1+.RandomSeed[1]]
+          else                      kind <- "default"
+         }
+       else
          {# set the RNG kind
           if (kind == "default") 
-            {if(exists(".RandomSeed", where=1)) remove(".RandomSeed", where=1)}
+            {if(exists(".RandomSeed")) remove(".RandomSeed", where = 1) }
           else if (kind == "Wichmann-Hill") 
              assign(".RandomSeed", c(0, as.integer(100000*runif(3))), where=1)
           else stop("Only Wichmann-Hill, default or NULL supported for kind.")
          }
-       old.normal <- if(exists(".RNORMtransform", where=1))
-       		 .RNORMtransform else  "default"
-       if ( !is.null(normal.kind)) 
+       if (is.null(normal.kind)) 
+          {if(exists(".RNORMtransform", where=1)) normal.kind <- .RNORMtransform
+           else                                   normal.kind <- "default"
+          }
+       else
           {if(exists(".BM.seed", where=1)) remove(".BM.seed", where=1)
-	   if (normal.kind == "Box-Muller")
-	         assign(".RNORMtransform", normal.kind, where=1)
+	   if (normal.kind == "Box-Muller") assign(".RNORMtransform", normal.kind, where=1)
            else if (normal.kind == "default")  
               {if(exists(".RNORMtransform", where=1))
-                  remove(".RNORMtransform", where=1)
-	       if(exists(".RandomSeed", where=1))
-	         {warning("kind also set to default as required by default normal.kind") 
-		  remove(".RandomSeed", where=1)
-		 } 
-	      }
+                  remove(".RNORMtransform", where=1)}
            else stop("Only Box-Muller, default or NULL supported for normal.kind.")
           }
-       c(old, old.normal)
+       c(kind, normal.kind)
       }
 
     if (!exists("set.seed.Splus")) set.seed.Splus <- set.seed
@@ -361,20 +388,18 @@ if (is.S())
          {# set seed
           if (kind[1] == "default") 
              {if (1==length(seed)) set.seed.Splus(seed)
-              else                 assign(".Random.seed", seed, where=1)#default
+              else                 assign(".Random.seed", seed, where=1)
              }
           else if (kind[1] == "Wichmann-Hill") 
              {if (3 != length(seed))
                  stop("seed length is not consistent with kind Wichmann-Hill.")
-              #Note this does not always work with For loops if where=0 is used.
               assign(".RandomSeed", c(0,seed), where=1)
              }
           else stop("seed does not match RNG kind.")
          }
        seed
       }
- 
- 
+
     set.RNG <- function(kind=NULL, seed=NULL, normal.kind=NULL)
       {# with a null argument this also serves as get.RNG 
         old <- list(kind=RNGkind()[1], normal.kind=RNGkind()[2],
@@ -434,9 +459,9 @@ rnorm <- function(n, mean=0, sd=1, compiled=F)
     else
       {if(n==0) return(numeric(0))
 #       if(exists(".BM.seed", envir=.GlobalEnv)) 
-       if(exists(".BM.seed", where=0)) 
-         {out <- get(".BM.seed", where=0)
-	  remove(".BM.seed", where=0)
+       if(exists(".BM.seed", where=1)) 
+         {out <- get(".BM.seed", where=1)
+	  remove(".BM.seed", where=1)
 	 }
        else out <- NULL
        # next should be true except when n==1 and an odd value has been saved
@@ -449,7 +474,7 @@ rnorm <- function(n, mean=0, sd=1, compiled=F)
 	 }
        if (1 == (length(out) - n)) 
           {#drop last point and keep for next call
-	   assign(".BM.seed", out[length(out)], where=0)
+	   assign(".BM.seed", out[length(out)], where=1)
 	   out <- out[-length(out)]
 	  }
        if(n !=length(out)) stop("something is rotten in the state of rnorm.")
@@ -457,7 +482,7 @@ rnorm <- function(n, mean=0, sd=1, compiled=F)
     mean + out*sd
    }
 
-  set.RNG(kind="default", normal.kind="default")
+
 
   }   # end of if is.S
 
